@@ -11,13 +11,15 @@ local console = require('console')
 
 box.cfg{
     listen=3301,
-    memtx_dir='../db',
-    wal_dir='../db'
+    wal_dir_rescan_delay=10,
+    log_level=7,
+    force_recovery=true
 }
+
 covid19_ecdc_space = box.space.covid19_ecdc_space
 if not covid19_ecdc_space then
-    box.schema.sequence.create('covid19_ecdc_sequence',{ if_not_exists = true })
-    covid19_ecdc_space = box.schema.space.create('covid19_ecdc_space', { if_not_exists = true })
+    box.schema.sequence.create('covid19_ecdc_sequence',{ if_not_exists=true })
+    covid19_ecdc_space = box.schema.space.create('covid19_ecdc_space', { if_not_exists=true, engine='vinyl' })
 --[[    covid19_ecdc_space:format({
         {name='1', type='any'},
         {name='2', type='integer'},
@@ -36,7 +38,8 @@ if not covid19_ecdc_space then
     box.schema.user.create('covid19_ecdc_admin', {password = 'ecdc', if_not_exists = true})
     box.schema.user.grant('covid19_ecdc_admin','read,write,execute,create,drop','universe')
 else
-    covid19_ecdc_space:drop()
+--[[    covid19_ecdc_space:drop()]]
 end
 
-console.start()
+--[[
+console.start()]]
