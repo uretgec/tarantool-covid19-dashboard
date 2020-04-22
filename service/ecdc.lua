@@ -10,7 +10,7 @@
 local console = require('console')
 
 box.cfg{
-    listen=3301,
+    listen='localhost:3301',
     wal_dir_rescan_delay=10,
     log_level=7,
     force_recovery=true
@@ -19,7 +19,7 @@ box.cfg{
 covid19_ecdc_space = box.space.covid19_ecdc_space
 if not covid19_ecdc_space then
     box.schema.sequence.create('covid19_ecdc_sequence',{ if_not_exists=true })
-    covid19_ecdc_space = box.schema.space.create('covid19_ecdc_space', { if_not_exists=true, engine='vinyl' })
+    covid19_ecdc_space = box.schema.space.create('covid19_ecdc_space', { if_not_exists=true })
 --[[    covid19_ecdc_space:format({
         {name='1', type='any'},
         {name='2', type='integer'},
