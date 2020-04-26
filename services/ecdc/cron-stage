@@ -1,2 +1,2 @@
 # Updater
-0 01 * * * cd /opt/tarantool/ && tarantool updater.lua
+*/15 * * * * cd /opt/tarantool/ && tarantool updater.lua
