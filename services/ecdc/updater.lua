@@ -7,50 +7,62 @@
 --- external config.yaml file added
 ---
 
-local net_box = require('net.box')
 local fio = require('fio')
 local csv= require('csv')
 local csv_opts = {skip_head_lines=1, delimiter=',' }
 local http_client = require('http.client').new()
+local net_box = require('net.box')
 
-local file_path = '../tmp/ecdc.csv'
+-- download ecdc data
+-- local file_path = '/tmp/ecdc/covid19.csv'
 local download_uri = 'https://opendata.ecdc.europa.eu/covid19/casedistribution/csv'
 local csv_file_resp = http_client:request('GET', download_uri)
 if csv_file_resp.status == 200 and csv_file_resp.body then
-    local csv_file = fio.open(file_path, { 'O_RDWR', 'O_TRUNC', 'O_CREAT' }, tonumber('0755', 8))
-    csv_file:write(csv_file_resp.body)
-    csv_file:close()
 
-    --[[Tarantool Connect Service]]
+    -- save data to csv file.
+--[[    local csv_file = fio.open(file_path, { 'O_RDWR', 'O_TRUNC', 'O_CREAT' }, tonumber('0755', 8))
+    csv_file:write(csv_file_resp.body)
+    csv_file:close()]]
+
+    -- connect tarantool service
     local conn = net_box.connect('covid19_ecdc_admin:ecdc@localhost:3301')
     conn:wait_state({active=true, fetch_schema=true})
-    print('Connected')
---[[    box.cfg{
-        listen='covid19_ecdc_admin:ecdc@localhost:3301',
-        memtx_dir='../db',
-        wal_dir='../db',
-        hot_standby=true
-    }]]
+    print('ecdc service connected')
 
---[[    covid19_ecdc_space = box.space.covid19_ecdc_space]]
---[[    if covid19_ecdc_space then]]
-        for row, column in csv.iterate(csv_file_resp.body, csv_opts) do
-            --[[dateRep,day,month,year,cases,deaths,countriesAndTerritories,geoId,countryterritoryCode,popData2018]]
-            conn.space.covid19_ecdc_space:insert({
-                nil, --[[Primary key]]
-                os.time({year = column[4], month = column[3], day = column[2]} ), --[[Unix Time]]
-                column[2] .. '-' .. column[3] .. '-' .. column[4], --[[day-month-year]]
-                tonumber(column[5]), --[[cases]]
-                tonumber(column[6]), --[[deaths]]
-                column[7], --[[countriesAndTerritories]]
-                column[8], --[[geoId]]
-                column[9], --[[countryterritoryCode]]
-                tonumber(column[10]) --[[popData2018]]
-            })
-        end
+    covid19_ecdc_space = conn.space.covid19_ecdc_space
+    if not covid19_ecdc_space then
+        print('space not found')
+        os.exit()
+    end
 
-        conn:close()
---[[    end]]
+    -- truncate space
+    data_count = conn:call('covid19.reset')
+    if not data_count then
+        print('space not truncate')
+        os.exit()
+    end
+
+    print('space truncated successfully')
+
+    -- insert new data
+    for row, column in csv.iterate(csv_file_resp.body, csv_opts) do
+        --[[dateRep,day,month,year,cases,deaths,countriesAndTerritories,geoId,countryterritoryCode,popData2018]]
+        covid19_ecdc_space:insert({
+            nil, --[[Primary key]]
+            os.time({year = column[4], month = column[3], day = column[2]} ), --[[Unix Time]]
+            column[2] .. '-' .. column[3] .. '-' .. column[4], --[[day-month-year]]
+            tonumber(column[5]), --[[cases]]
+            tonumber(column[6]), --[[deaths]]
+            column[7], --[[countriesAndTerritories]]
+            column[8], --[[geoId]]
+            column[9], --[[countryterritoryCode]]
+            tonumber(column[10]) --[[popData2018]]
+        })
+    end
+
+    print('ecdc data inserted successfully')
+
+    conn:close()
 end
-print('Finished')
+print('ecdc service disconnected')
 os.exit()
