@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  service_ecdc:
+    build: ./services/ecdc
+    restart: always
+    container_name: service_ecdc
+    ports:
+      - '3301:3301'
+    networks:
+      - quarantine
+    healthcheck:
+      disable: true
+  web_ecdc:
+    build: ./web/ecdc
+    restart: always
+    container_name: web_ecdc
+    ports:
+      - '80:8080'
+    networks:
+      - quarantine
+    healthcheck:
+      disable: true
+    depends_on:
+      - service_ecdc
+
+networks:
+  quarantine:
