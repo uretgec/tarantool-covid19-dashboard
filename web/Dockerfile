@@ -1,6 +1,6 @@
-FROM tarantool/tarantool:2/latest
+FROM tarantool/tarantool-nginx:latest
 
-COPY ecdc.lua /opt/tarantool
-EXPOSE 3301
-WORKDIR /opt/tarantool
-CMD ["tarantool", "ecdc.lua"]
+COPY nginx.conf /etc/nginx/nginx.conf
+VOLUME ['/var/cache/nginx']
+
+CMD ["nginx", "daemon off;"]

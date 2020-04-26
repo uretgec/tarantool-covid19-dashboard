@@ -1,14 +1,11 @@
-FROM tarantool/tarantool:2/latest
+FROM tarantool/tarantool:2.3.1
 
-RUN apt-get install -y cron
-
-COPY app.lua /opt/tarantool/ecdc
-COPY updater.lua /opt/tarantool/ecdc
-COPY .cron-stage.env /opt/tarantool/ecdc/cron-stage
+COPY app.lua /opt/tarantool
+COPY updater.lua /opt/tarantool
+COPY cron-stage /opt/tarantool
 
 WORKDIR /opt/tarantool
 
-RUN chmod +x /opt/tarantool/ecdc/cron-stage \
-    && crontab /opt/tarantool/ecdc/cron-stage
+RUN chmod +x /opt/tarantool/cron-stage && crontab /opt/tarantool/cron-stage
 
 CMD ["tarantool", "app.lua"]

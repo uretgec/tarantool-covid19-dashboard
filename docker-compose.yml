@@ -1,4 +1,4 @@
-version: '3.8'
+version: '3.6'
 
 services:
   service_ecdc:
@@ -12,11 +12,12 @@ services:
     healthcheck:
       disable: true
   web_ecdc:
-    build: ./web/ecdc
+    build: ./web
     restart: always
     container_name: web_ecdc
     ports:
-      - '80:8080'
+      - '80:80'
+      - '443:443'
     networks:
       - quarantine
     healthcheck:
