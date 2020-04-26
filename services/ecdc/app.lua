@@ -7,7 +7,6 @@
 --- external config.yaml file added
 --- user defined functions added
 ---
-local console = require('console')
 
 box.cfg{
     listen='localhost:3301',
