@@ -25,7 +25,8 @@ if csv_file_resp.status == 200 and csv_file_resp.body then
     csv_file:close()]]
 
     -- connect tarantool service
-    local conn = net_box.connect('covid19_ecdc_admin:ecdc@localhost:3301')
+    -- local conn = net_box.connect('covid19_admin:noway@localhost:3301')
+    local conn = net_box.connect('localhost:3301')
     conn:wait_state({active=true, fetch_schema=true})
     print('ecdc service connected')
 

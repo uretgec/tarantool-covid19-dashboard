@@ -9,9 +9,10 @@
 ---
 
 --[[local conf = require('config.default')]]
+local ecdc = require('api')
 
 box.cfg{
-    listen='localhost:3301',
+    listen=3301,
     wal_dir_rescan_delay=10,
     log_level=7,
     force_recovery=true
@@ -25,30 +26,16 @@ if not covid19_ecdc_space then
     covid19_ecdc_space:create_index('primary', {sequence='covid19_ecdc_sequence', if_not_exists=true, parts= { {field=1, type='unsigned'} }})
     covid19_ecdc_space:create_index('secondary', {unique=false, type='tree', if_not_exists=true, parts={ {field=7, type='string'}, {field=2, type='integer'} }})
 
-    box.schema.user.create('covid19_ecdc_admin', {password = 'ecdc', if_not_exists = true})
-    box.schema.user.grant('covid19_ecdc_admin','read,write,execute,create,drop','universe')
-end
+    -- box.schema.user.create('covid19_admin', {password = 'noway', if_not_exists = true})
+    -- box.schema.user.grant('covid19_admin','read,write,execute,create,drop','universe')
 
-local ecdc = {}
-function ecdc.api()
-    local api = {}
-    function api.findBy(query)
-        -- country, date, offset, limit, order
-        print(query)
-        return covid19_ecdc_space.index.secondary:select({'TR'})
-    end
-
-    function api.reset()
-        covid19_ecdc_space:truncate()
-        if covid19_ecdc_space:len() > 0 then
-            return false
-        end
-
-        box.sequence.covid19_ecdc_sequence:reset()
-        return true
-    end
-
-    return api
+    box.schema.user.grant('guest','read,write,execute','universe')
 end
 
 covid19 = ecdc.api()
+
+function findMy(req, query)
+    -- country, date, offset, limit, order
+    return { 'ok' }
+    -- return covid19_ecdc_space.index.secondary:select({'TR'})
+end

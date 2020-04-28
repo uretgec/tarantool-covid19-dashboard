@@ -1,29 +1,31 @@
 version: '3.6'
 
 services:
-  service_ecdc:
+  ecdcservice:
     build: ./services/ecdc
     restart: always
-    container_name: service_ecdc
+    container_name: ecdcservice
+    environment:
+      TARANTOOL_USER_NAME: 'covid19_admin'
+      TARANTOOL_USER_PASSWORD: 'noway'
     ports:
       - '3301:3301'
     networks:
       - quarantine
     healthcheck:
       disable: true
-  web_ecdc:
+  mainweb:
     build: ./web
     restart: always
-    container_name: web_ecdc
+    container_name: mainweb
     ports:
       - '80:80'
-      - '443:443'
     networks:
       - quarantine
     healthcheck:
       disable: true
     depends_on:
-      - service_ecdc
+      - ecdcservice
 
 networks:
   quarantine:
